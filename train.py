@@ -58,71 +58,88 @@ def train(args, train_loader, models, criterions, optimizers, epoch, trainValid=
         voice = torch.squeeze(voice,dim=-1).cuda()
         labels = torch.argmax(target_cl,dim=1) 
         
-        # extract unseen
-        idx_unseen=[]
-        idx_seen=[]
-        for j in range(len(labels)):
-            if args.classname[labels[j]] == args.unseen:
-                idx_unseen.append(j)
-            else:
-                idx_seen.append(j)
-        
-        input_ns = input[idx_unseen]
-        target_ns = target[idx_unseen]
-        target_cl_ns = target_cl[idx_unseen]
-        voice_ns = voice[idx_unseen]
-        labels_ns = labels[idx_unseen]
-        data_info_ns = [data_info[0][idx_unseen],data_info[1][idx_unseen]]
-        
-        input = input[idx_seen]
-        target = target[idx_seen]
-        target_cl = target_cl[idx_seen]
-        voice = voice[idx_seen]
-        labels = labels[idx_seen]
-        data_info = [data_info[0][idx_seen],data_info[1][idx_seen]]
-        
-        # # need to remove
-        # models = (model_g, model_d, vocoder, model_STT, decoder_STT)
-        # criterions = (criterion_recon, criterion_ctc, criterion_adv, criterion_cl, CER)
-        # trainValid = True
-        
-        # general training         
-        if len(input) != 0:
-            # train generator
-            mel_out, e_loss_g, e_acc_g = train_G(args, 
-                                                 input, target, voice, labels,  
-                                                 models, criterions, optimizer_g, 
-                                                 data_info, 
-                                                 trainValid)
-            epoch_loss_g.append(e_loss_g)
-            epoch_acc_g.append(e_acc_g)
-        
-            # train discriminator
-            e_loss_d, e_acc_d = train_D(args, 
-                                        mel_out, target, target_cl, labels,
-                                        models, criterions, optimizer_d, 
-                                        trainValid)
-            epoch_loss_d.append(e_loss_d)
-            epoch_acc_d.append(e_acc_d)
-        
-        # Unseen words training
-        if len(input_ns) != 0 :
-            # Unseen train generator
-            mel_out_ns, e_loss_g_ns, e_acc_g_ns = train_G(args, 
-                                                          input_ns, target_ns, voice_ns, labels_ns, 
-                                                          models, criterions, optimizer_g, 
-                                                          data_info_ns,
-                                                          False)
-            epoch_loss_g_ns.append(e_loss_g_ns)
-            epoch_acc_g_ns.append(e_acc_g_ns)
+        # 音乐重建模式：简化处理，跳过unseen/seen分离
+        if args.music_mode:
+            # 音乐重建：直接训练所有数据
+            if len(input) != 0:
+                # train generator
+                mel_out, e_loss_g, e_acc_g = train_G(args, 
+                                                     input, target, voice, labels,  
+                                                     models, criterions, optimizer_g, 
+                                                     data_info, 
+                                                     trainValid)
+                epoch_loss_g.append(e_loss_g)
+                epoch_acc_g.append(e_acc_g)
             
-            # Unseen train discriminator
-            e_loss_d_ns, e_acc_d_ns = train_D(args, 
-                                              mel_out_ns, target_ns, target_cl_ns, labels_ns, 
-                                              models, criterions, optimizer_d, 
-                                              False)
-            epoch_loss_d_ns.append(e_loss_d_ns)
-            epoch_acc_d_ns.append(e_acc_d_ns)
+                # train discriminator
+                e_loss_d, e_acc_d = train_D(args, 
+                                            mel_out, target, target_cl, labels,
+                                            models, criterions, optimizer_d, 
+                                            trainValid)
+                epoch_loss_d.append(e_loss_d)
+                epoch_acc_d.append(e_acc_d)
+        else:
+            # 语音重建模式：原始处理逻辑
+            # extract unseen
+            idx_unseen=[]
+            idx_seen=[]
+            for j in range(len(labels)):
+                if args.classname[labels[j]] == args.unseen:
+                    idx_unseen.append(j)
+                else:
+                    idx_seen.append(j)
+            
+            input_ns = input[idx_unseen]
+            target_ns = target[idx_unseen]
+            target_cl_ns = target_cl[idx_unseen]
+            voice_ns = voice[idx_unseen]
+            labels_ns = labels[idx_unseen]
+            data_info_ns = [data_info[0][idx_unseen],data_info[1][idx_unseen]]
+            
+            input = input[idx_seen]
+            target = target[idx_seen]
+            target_cl = target_cl[idx_seen]
+            voice = voice[idx_seen]
+            labels = labels[idx_seen]
+            data_info = [data_info[0][idx_seen],data_info[1][idx_seen]]
+            
+            # general training         
+            if len(input) != 0:
+                # train generator
+                mel_out, e_loss_g, e_acc_g = train_G(args, 
+                                                     input, target, voice, labels,  
+                                                     models, criterions, optimizer_g, 
+                                                     data_info, 
+                                                     trainValid)
+                epoch_loss_g.append(e_loss_g)
+                epoch_acc_g.append(e_acc_g)
+            
+                # train discriminator
+                e_loss_d, e_acc_d = train_D(args, 
+                                            mel_out, target, target_cl, labels,
+                                            models, criterions, optimizer_d, 
+                                            trainValid)
+                epoch_loss_d.append(e_loss_d)
+                epoch_acc_d.append(e_acc_d)
+            
+            # Unseen words training
+            if len(input_ns) != 0 :
+                # Unseen train generator
+                mel_out_ns, e_loss_g_ns, e_acc_g_ns = train_G(args, 
+                                                              input_ns, target_ns, voice_ns, labels_ns, 
+                                                              models, criterions, optimizer_g, 
+                                                              data_info_ns,
+                                                              False)
+                epoch_loss_g_ns.append(e_loss_g_ns)
+                epoch_acc_g_ns.append(e_acc_g_ns)
+                
+                # Unseen train discriminator
+                e_loss_d_ns, e_acc_d_ns = train_D(args, 
+                                                  mel_out_ns, target_ns, target_cl_ns, labels_ns, 
+                                                  models, criterions, optimizer_d, 
+                                                  False)
+                epoch_loss_d_ns.append(e_loss_d_ns)
+                epoch_acc_d_ns.append(e_acc_d_ns)
 
     epoch_loss_g = np.array(epoch_loss_g)
     epoch_acc_g = np.array(epoch_acc_g)
@@ -464,7 +481,13 @@ def main(args):
     torch.backends.cudnn.deterministic = True
 
     # define generator
-    config_file = os.path.join(args.model_config, 'config_g.json')
+    if args.music_mode:
+        config_file = os.path.join(args.model_config, 'config_g_music.json')
+        print(f"音乐重建模式 - 生成器配置: {config_file}")
+    else:
+        config_file = os.path.join(args.model_config, 'config_g.json')
+        print(f"语音重建模式 - 生成器配置: {config_file}")
+    
     with open(config_file) as f:
         data = f.read()
     json_config = json.loads(data)
@@ -474,7 +497,13 @@ def main(args):
     args.sample_rate_mel = args.sampling_rate
     
     # define discriminator
-    config_file = os.path.join(args.model_config, 'config_d.json')
+    if args.music_mode:
+        config_file = os.path.join(args.model_config, 'config_d_music.json')
+        print(f"音乐重建模式 - 判别器配置: {config_file}")
+    else:
+        config_file = os.path.join(args.model_config, 'config_d.json')
+        print(f"语音重建模式 - 判别器配置: {config_file}")
+    
     with open(config_file) as f:
         data = f.read()
     json_config = json.loads(data)
@@ -590,11 +619,24 @@ def main(args):
     # Data loader define
     generator = torch.Generator().manual_seed(args.seed)
 
-    trainset = myDataset(mode=0, data=args.dataLoc+'/'+args.sub, task=args.task, recon=args.recon)
+    # 根据模式选择数据集路径
+    if args.music_mode:
+        # 音乐重建模式：使用train/val/test子目录
+        train_data_path = args.dataLoc + '/train'
+        val_data_path = args.dataLoc + '/val'
+        print(f"音乐重建模式 - 训练数据路径: {train_data_path}")
+        print(f"音乐重建模式 - 验证数据路径: {val_data_path}")
+    else:
+        # 语音重建模式：使用原始路径
+        train_data_path = args.dataLoc + '/' + args.sub
+        val_data_path = args.dataLoc + '/' + args.sub
+        print(f"语音重建模式 - 数据路径: {train_data_path}")
+
+    trainset = myDataset(mode=0, data=train_data_path, task=args.task, recon=args.recon)
     train_loader = torch.utils.data.DataLoader(
         trainset, batch_size=args.batch_size, shuffle=True, generator=generator, num_workers=4*len(args.gpuNum), pin_memory=True)
     
-    valset = myDataset(mode=2, data=args.dataLoc+'/'+args.sub, task=args.task, recon=args.recon)
+    valset = myDataset(mode=2, data=val_data_path, task=args.task, recon=args.recon)
     val_loader = torch.utils.data.DataLoader(
         valset, batch_size=args.batch_size, shuffle=True, generator=generator, num_workers=4*len(args.gpuNum), pin_memory=True)
 
@@ -689,9 +731,21 @@ if __name__ == '__main__':
     parser.add_argument('--recon', type=str, default='Y_mel')
     parser.add_argument('--unseen', type=str, default='stop')
     
+    # 添加音乐重建相关参数
+    parser.add_argument('--music_mode', type=bool, default=False, help='Enable music reconstruction mode')
+    parser.add_argument('--music_config', type=str, default='./config_music.json', help='Music reconstruction config file')
+    
     args = parser.parse_args()
     
-    with open(args.config) as f:
+    # 根据模式选择配置文件
+    if args.music_mode:
+        config_file = args.music_config
+        print("使用音乐重建模式")
+    else:
+        config_file = args.config
+        print("使用语音重建模式")
+    
+    with open(config_file) as f:
         t_args = argparse.Namespace()
         t_args.__dict__.update(json.load(f))
         args = parser.parse_args(namespace=t_args)
