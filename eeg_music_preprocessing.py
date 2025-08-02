@@ -428,8 +428,8 @@ class EEGMusicPreprocessor:
 if __name__ == "__main__":
     # 运行预处理脚本
     preprocessor = EEGMusicPreprocessor(
-        eeg_dir='/home/binwen6/code/CBD/Generate',
-        music_dir='/home/binwen6/code/CBD/BCMI/dataset/music_gen_wav_22050',
-        output_dir='/home/binwen6/code/CBD/NeuroTalk/dataset'
+        eeg_dir='/root/autodl-tmp/Generate',
+        music_dir='/root/autodl-tmp/music_gen_wav_22050',
+        output_dir='/root/autodl-tmp/dataset'
     )
     preprocessor.process_all_data()

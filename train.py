@@ -711,8 +711,8 @@ def main(args):
 
 if __name__ == '__main__':
 
-    dataDir = './dataset'
-    logDir = './TrainResult'
+    dataDir = '/root/autodl-tmp/dataset'
+    logDir = '/root/autodl-tmp/TrainResult'
     
     parser = argparse.ArgumentParser(description='Hyperparams')
     parser.add_argument('--vocoder_pre', type=str, default='./pretrained_model/UNIVERSAL_V1/g_02500000', help='pretrained vocoder file path')

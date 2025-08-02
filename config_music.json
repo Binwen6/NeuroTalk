@@ -1,4 +1,13 @@
 {
+    "max_epochs": 100,
+    "l_g": [1, 0.01, 0],  
+    "lr_g": 0.0001,
+    "lr_g_decay": 0.999,
+    "l_d": [1,1],
+    "lr_d": 0.0001, 
+    "lr_d_decay": 0.999,
+    "seed": 42,
+    "max_wav_value": 32768,
     "sampling_rate": 22050,
     "n_fft": 1024,
     "win_length": 1024,
@@ -9,5 +18,7 @@
     "eeg_channels": 16,
     "eeg_sampling_rate": 500,
     "segment_duration": 9.95,
-    "segment_samples": 4975
-} 
+    "segment_samples": 4975,
+    "music_duration": 9.95,
+    "target_eeg_sr": 500
+}
