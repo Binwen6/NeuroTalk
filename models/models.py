@@ -204,12 +204,13 @@ class Discriminator(torch.nn.Module):
         
         self.conv_post = weight_norm(Conv1d(ch, ch, 9, 1, padding=get_padding(9,1)))
         
-        # FC Layer 
+        # FC Layer - 使用自适应池化来处理不同大小的输入
+        self.adaptive_pool = nn.AdaptiveAvgPool1d(1)
         self.adv_classifier = nn.Sequential(nn.Linear(
-            h.ch_init_downsample*2*8*(self.input_size//self.m), 1),
+            h.ch_init_downsample*2*8, 1),
             nn.Sigmoid())
         self.aux_classifier = nn.Sequential(nn.Linear(
-            h.ch_init_downsample*2*8*(self.input_size//self.m), h.n_classes),
+            h.ch_init_downsample*2*8, h.n_classes),
             nn.Softmax(dim=1))
         
         self.conv_pre.apply(init_weights)
@@ -238,10 +239,9 @@ class Discriminator(torch.nn.Module):
         x = x.transpose(1, 2)
         x = torch.cat([x, x_temp], dim=1)
 
-        # FC Layer
-        x = x.view(-1,
-                   self.ch_init_downsample
-                   *2*8*(self.input_size//self.m))
+        # FC Layer - 使用自适应池化
+        x = self.adaptive_pool(x)  # 自适应池化到固定大小
+        x = x.view(-1, self.ch_init_downsample*2*8)
         validity = self.adv_classifier(x)
         label = self.aux_classifier(x)
         

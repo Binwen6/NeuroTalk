@@ -237,7 +237,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpuNum', type=list, default=[0])
     parser.add_argument('--batch_size', type=int, default=26)
     parser.add_argument('--sub', type=str, default='sub1')
-    parser.add_argument('--task', type=str, default='SpokenEEG')
+    parser.add_argument('--task', type=str, default='EEG')
     parser.add_argument('--recon', type=str, default='Y_mel')
     parser.add_argument('--unseen', type=str, default='stop')
     

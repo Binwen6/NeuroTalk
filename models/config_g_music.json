@@ -3,7 +3,7 @@
     "adam_b1": 0.8,
     "adam_b2": 0.99,
     "lr_decay": 0.999,
-    "upsample_rates": [3,2,2],
+    "upsample_rates": [1,1,1],
     "upsample_kernel_sizes": [6,4,4],
     "ch_init_upsample": 1024,
     "resblock_kernel_sizes": [3,7,11],

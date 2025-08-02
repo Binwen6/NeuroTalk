@@ -261,6 +261,9 @@ def train_G(args, input, target, voice, labels, models, criterions, optimizer_g,
     
     # DTW
     mel_out = output.clone()
+    # 截断生成器输出到目标长度
+    if mel_out.shape[-1] > target.shape[-1]:
+        mel_out = mel_out[:, :, :target.shape[-1]]
     mel_out = DTW_align(mel_out, target)
     
     # Run Discriminator
@@ -711,8 +714,10 @@ def main(args):
 
 if __name__ == '__main__':
 
-    dataDir = '/root/autodl-tmp/dataset'
-    logDir = '/root/autodl-tmp/TrainResult'
+    # dataDir = '/root/autodl-tmp/dataset'
+    # logDir = '/root/autodl-tmp/TrainResult'
+    dataDir = './dataset'
+    logDir = './TrainResult'
     
     parser = argparse.ArgumentParser(description='Hyperparams')
     parser.add_argument('--vocoder_pre', type=str, default='./pretrained_model/UNIVERSAL_V1/g_02500000', help='pretrained vocoder file path')
@@ -725,14 +730,14 @@ if __name__ == '__main__':
     parser.add_argument('--pretrain', type=bool, default=False)
     parser.add_argument('--prefreeze', type=bool, default=False)
     parser.add_argument('--gpuNum', type=list, default=[0])
-    parser.add_argument('--batch_size', type=int, default=26)
+    parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--sub', type=str, default='sub1')
-    parser.add_argument('--task', type=str, default='SpokenEEG')
+    parser.add_argument('--task', type=str, default='EEG')
     parser.add_argument('--recon', type=str, default='Y_mel')
     parser.add_argument('--unseen', type=str, default='stop')
     
     # 添加音乐重建相关参数
-    parser.add_argument('--music_mode', type=bool, default=False, help='Enable music reconstruction mode')
+    parser.add_argument('--music_mode', type=bool, default=True, help='Enable music reconstruction mode')
     parser.add_argument('--music_config', type=str, default='./config_music.json', help='Music reconstruction config file')
     
     args = parser.parse_args()
