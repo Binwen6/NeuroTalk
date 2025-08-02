@@ -1,0 +1,13 @@
+{
+    "sampling_rate": 22050,
+    "n_fft": 1024,
+    "win_length": 1024,
+    "hop_length": 256,
+    "n_mel_channels": 80,
+    "classname": ["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"],
+    "word_label": ["All Of Me", "梦中的鸟", "Turn the Page", "梦中的婚礼", "夜的钢琴曲5", "千与千寻", "雨中漫步", "天空之城"],
+    "eeg_channels": 16,
+    "eeg_sampling_rate": 500,
+    "segment_duration": 9.95,
+    "segment_samples": 4975
+} 

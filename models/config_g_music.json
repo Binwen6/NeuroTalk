@@ -1,0 +1,9 @@
+{
+    "input_dim": 16,
+    "hidden_dim": 256,
+    "output_dim": 80,
+    "num_layers": 4,
+    "dropout": 0.1,
+    "segment_length": 4975,
+    "mel_frames": 858
+} 

@@ -6,93 +6,54 @@ from torch.utils.data import Dataset
 
 epsilon = np.finfo(float).eps
 
+# NeuroTalkDataset.py 修改
 class myDataset(Dataset):
-    def __init__(self, mode, data="./", task = "SpokenEEG", recon="Y_mel"):
+    def __init__(self, mode, data="./", task="MusicEEG", recon="Y_mel"):
         self.sample_rate = 8000
-        self.n_classes = 13
+        self.n_classes = 1  # 音乐重建
         self.mode = mode
-        self.iter = iter
         self.savedata = data
         self.task = task
         self.recon = recon
         self.max_audio = 32768.0
-        self.lenth = len(os.listdir(self.savedata + '/train/Y/')) #780 # the number data
-        self.lenthtest = len(os.listdir(self.savedata + '/test/Y/')) #260
-        self.lenthval = len(os.listdir(self.savedata + '/val/Y/')) #260
         
-
-    def __len__(self):
+        # 根据模式设置数据长度
         if self.mode == 2:
-            return self.lenthval
+            self.lenth = len(os.listdir(self.savedata + '/val/Y_mel/'))
         elif self.mode == 1:
-            return self.lenthtest
+            self.lenth = len(os.listdir(self.savedata + '/test/Y_mel/'))
         else:
-            return self.lenth
-
+            self.lenth = len(os.listdir(self.savedata + '/train/Y_mel/'))
+    
     def __getitem__(self, idx):
-        '''
-        :param idx:
-        :return:
-        '''
-
+        # 确定数据目录
         if self.mode == 2:
             forder_name = self.savedata + '/val/'
         elif self.mode == 1:
             forder_name = self.savedata + '/test/'
         else:
             forder_name = self.savedata + '/train/'
-            
-        # tasks
+        
+        # 读取EEG数据
         allFileList = os.listdir(forder_name + self.task + "/")
         allFileList.sort()
         file_name = forder_name + self.task + '/' + allFileList[idx]
+        input, avg_input, std_input = self.read_data(file_name)
         
-        # if self.task.find('vec') != -1: # embedding vector
-        #     input, avg_input, std_input = self.read_vector_data(file_name) 
-        if self.task.find('mel') != -1:
-            input, avg_input, std_input = self.read_data(file_name)
-        elif self.task.find('Voice') != -1: # voice
-            input, avg_input, std_input = self.read_voice_data(file_name)
-        else: # EEG
-            input, avg_input, std_input = self.read_data(file_name) 
-            
-            
-        # recon target
+        # 读取梅尔频谱数据
         allFileList = os.listdir(forder_name + self.recon + "/")
         allFileList.sort()
         file_name = forder_name + self.recon + '/' + allFileList[idx]
+        target, avg_target, std_target = self.read_data(file_name)
         
-        # if self.recon.find('vec') != -1: # embedding vector
-        #     target, avg_target, std_target = self.read_vector_data(file_name) 
-        if self.recon.find('mel') != -1:
-            target, avg_target, std_target = self.read_data(file_name)
-        elif self.recon.find('Voice') != -1: # voice
-            target, avg_target, std_target = self.read_voice_data(file_name)
-        else: # EEG
-            target, avg_target, std_target = self.read_data(file_name) 
+        # 音乐重建不需要语音相关数据
+        voice = torch.zeros((1, 1000))  # 占位符
+        target_cl = torch.zeros((1,))   # 占位符
         
-        # voice
-        allFileList = os.listdir(forder_name + "Voice/")
-        allFileList.sort()
-        file_name = forder_name + "Voice/"+ allFileList[idx]
-        voice, _, _ = self.read_voice_data(file_name)
-        # voice=[]
-        # target label
-        allFileList = os.listdir(forder_name + "Y/")
-        allFileList.sort()
-        file_name = forder_name + 'Y/' + allFileList[idx]
-        
-        target_cl,_,_ = self.read_raw_data(file_name) 
-        target_cl = np.squeeze(target_cl)
-
-
-        # to tensor
         input = torch.tensor(input, dtype=torch.float32)
         target = torch.tensor(target, dtype=torch.float32)
         
-
         return input, target, target_cl, voice, (avg_target, std_target, avg_input, std_input)
-
    
     def read_vector_data(self, file_name,n_classes):
         with open(file_name, 'r', newline='') as f:
